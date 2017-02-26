@@ -1,5 +1,10 @@
 Sparser is regex & string parsing for humans
 ====================================
+
+Sparser is a matching and parsing language which excels
+at dealing with large blocks of text.
+
+
 Regular expressions are powerful but difficult to use and not
 well-suited to longer, multi-line strings. Sparser was developed as
 a reverse-templating language to handle this problem.
@@ -68,9 +73,9 @@ For simple one-offs, use inline `lambda types`
      'date': 23,
      'month': 'July'}
 
-Loops are one of the most power features of Sparser and are a
-feature that does not exist in regular expressions. Loops are great
-for lighly formatted tables
+Loops are one of the most powerful features of Sparser and are a
+feature that cannot be translated to plain regular expressions.
+The number one use-case is for lighly formatted tables
 
     >>> patt = """\
         {*loop imdb_list*}
@@ -145,23 +150,61 @@ multi-option matches
     >>> print compiled.parse(string)
     {"statement": {"case": "telling_it_like_it_is"}}
 
-You can use the {*include <what>*} statement to embed patterns in patterns.
-This works on a preprocessor level (like #define of C fame) so it is
-equivalent to copying and pasting. This is useful for reusing common
-patterns or just breaking up and organizing longer ones.
+
+Loops and switches can be nested. Here is how to pull an organized list of links out of a wikipedia page
+
+    >>> patt = """
+    {*loop sections*}
+        {*case unnamed*}
+            {*loop links*}
+                {*case*}{{spstr}} [[link_title|link]] {{spstr}}{*endcase*}
+                {*case*}{{spstr}} [[link]] {{spstr}}{*endcase*}
+            {*endloop*}
+        {*endcase*}
+        {*case named*}
+            =={{spstr section_name}}==
+            {*loop links*}
+                {*case*}{{spstr}} [[link_title|link]] {{spstr}}{*endcase*}
+                {*case*}{{spstr}} [[link]] {{spstr}}{*endcase*}
+            {*endloop*}
+        {*endcase*}
+    {*endloop*}"""
+    >>> wikipedia_link_extracter = sp.compile(patt)
+    >>> apodora_python = """\
+        "'''''Apodora''''' is a [[monotypic]] [[genus]] created for the non-venomous [[Pythonidae|python]] [[species]], ''A. papuana'', found in [[New Guinea]]. No [[subspecies]] are currently recognized.
+
+        ==Description==
+        A large snake, with adults growing to lengths of over 5m (17feet). However, they are not nearly as heavy bodied as other pythons, weighing in at no more than about 22.5kg (50lb). They are noted for having the ability to change color, though the exact mechanism and reasons for it are not completely understood. The color is reputed to change when the snake is agitated. They can vary from [[black]] to a mustard [[yellow]], but are normally an olive [[green]] in appearance when young and dark olive when older, with the sides and underside distinctly lighter.
+
+        ==Geographic range==
+        Found in most of [[New Guinea]], from [[Misool]] to [[Fergusson Island]]. The [[Type locality (biology)|type locality]] given is "Ramoi Nova Guinea austro-occidentiali" (Ramoi, near [[Sorong (city)|Sorong]], [[Irian Jaya]], [[Indonesia]])."""
+    >>> print wiki_link_extracter.parse(apodora_python)
+
+
+You can use the {*include <what>*} statement to embed patterns within patterns.
+This works on a preprocessor level (like `#define` of C language fame) and is
+equivalent to copying and pasting. The {*include*} statement is useful for reusing common
+patterns or just breaking up and organizing longer ones. Here's a way to incorporate
+it within our wikipedia example
 
     >>> patt = """\
-        {*switch*}
-            {*case*}{*include location*}{*endcase*}
-        {*endswitch*}
-        """
-
-
-    >>> location = """\
-        {{spstr address}} ({{float lat}},{{float lon}})
-
-
-TODO
+    {*loop sections*}
+        {*case unnamed*}
+            {*include link_patt*}
+        {*endcase*}
+        {*case named*}
+            =={{spstr section_name}}==
+            {*include link_patt*}
+        {*endcase*}
+    {*endloop*}"""
+    >>> link_patt = """\
+        {*loop links*}
+            {*case*}{{spstr}} [[link_title|link]] {{spstr}}{*endcase*}
+            {*case*}{{spstr}} [[link]] {{spstr}}{*endcase*}
+        {*endloop*}"""
+    >>> wiki_link_extractor_using_includes = sp.compile(patt, include={"link_patt": link_patt})
+    >>> assert wiki_link_extracter.parse(apodora_python) == wiki_link_extractor_using_includes(apodora_python)
+    True
 
 
 Installation
@@ -273,9 +316,7 @@ Or, of course, a `{{spstr}}` works in a pinch
 
 # Loops and newlines
 Loops are designed to handle table-like strings so newlines are implied in
-loop-matching. In the future, Sparser might support inline loops. In the
-meantime, you can use the regex bar (`|`) operator in custom or lambda
-types.
+loop-matching. TODO... are they?
 
 
 # The number of spaces and newlines doesn't matter
@@ -300,9 +341,9 @@ But will not match
 
     Thesun
 
-The same is true for `\n` newlines. This is not without precedent. HTML
-rendering works in the same way. This was done because of the unique
-challenges in parsing multi-line regular expressions.
+The same is true for `\n` newlines. This might seem like an odd language
+decision but it makes actually parsing large blocks of text easier. HTML
+rendering works in the same way.
 
 
 Tags
@@ -363,10 +404,10 @@ If you just want to return the un-modified string, pass in `None`
 
 TODO
 ======
-- Ask Akshay newlines explicit (can add syntax sugar later)
-- Finish includes example
-- Ensure that nested loops work
+- Should newlines actually be newline only and un-nestable?
+- Make nested loops & switches work
 - Update docs
+- better error handling
 - upload to pip
 After release
 - Inline loops (If a loop is not adjacent to \n on both sides, we should not automatically newline it)
