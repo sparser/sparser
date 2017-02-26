@@ -1,0 +1,1019 @@
+# comments are like this
+# Every test case has PATTERN, STRING, OUTPUT
+# Three empty lines in between test cases
+
+
+
+- str
+PATTERN
+My name is {{str name}}
+STRING
+My name is Scott
+OUTPUT
+{"name": "Scott"}
+
+
+
+- spstr
+PATTERN
+My name is {{spstr name}} of the Qin dynasty
+STRING
+My name is Emperor Qin Shi Huang of the Qin dynasty
+OUTPUT
+{"name": "Emperor Qin Shi Huang"}
+
+
+
+- int
+PATTERN
+The earth is {{int age}} years old
+STRING
+The earth is 4,000,000,000 years old
+OUTPUT
+{"age": 4000000000}
+
+
+
+- shitty int
+PATTERN
+This int is shit {{int shit_ints}}
+STRING
+This int is shit 3.5.3
+RAISES
+SparserValueError
+
+
+
+- float
+PATTERN
+The first eight digits of pi are {{float pi}}
+STRING
+The first eight digits of pi are 3.1415926
+OUTPUT
+{"pi": 3.1415926}
+
+
+
+- shitty float
+PATTERN
+This float is shit {{float shit_float}}
+STRING
+This float is shit 3.5.3
+RAISES
+SparserValueError
+
+
+
+- currency
+PATTERN
+We made {{currency money}} dollars today
+STRING
+We made -$54 dollars today
+OUTPUT
+{"money": -54.0}
+
+
+
+- alpha
+PATTERN
+{{alpha mountain}}
+STRING
+Evans
+OUTPUT
+{"mountain": "Evans"}
+
+
+
+- alphanum
+PATTERN
+{{alphanum forty}}
+STRING
+E40
+OUTPUT
+{"forty": "E40"}
+
+
+
+- unknown token
+PATTERN
+We made {*loap money*} dollars today
+STRING
+We made -$54 dollars today
+RAISES
+SparserSyntaxError
+
+
+
+- unknown type
+PATTERN
+We made {{flaot money}} dollars today
+STRING
+We made -$54 dollars today
+RAISES
+SparserSyntaxError
+
+
+
+- hello world
+PATTERN
+My name is {{str name}} and I am {{int age}} years old
+STRING
+My name is Scott and I am 29 years old
+OUTPUT
+{"age": 29, "name": "Scott"}
+
+
+
+- You have to match the string 100%
+PATTERN
+My name is {{str name}} and I am {{int age}} years old
+STRING
+I am 29 years old and my name is scott
+RAISES
+SparserValueError
+
+
+
+- Still have to match
+PATTERN
+My name is {{str name}}
+STRING
+My name is Scott and I am 29 years old
+RAISES
+SparserValueError
+
+
+
+- This is okay though
+PATTERN
+My name is {{str name}} and {{spstr}}
+STRING
+My name is Scott and I am 29 years old
+OUTPUT
+{"name": "Scott"}
+
+
+
+- This shouldn't work because we shouldn't be able to repeat a group
+PATTERN
+My name is {{str name}}+ and I am {{int decimal}}*
+STRING
+My name is Scott+ and I am 29*
+OUTPUT
+{"name": "Scott", "decimal": 29}
+
+
+
+- Strange looking loop token
+PATTERN
+My name is {{*loop*}} and .*? and {{int decimal}}*
+STRING
+My name is Scott and I am 29 years old
+RAISES
+SparserSyntaxError
+
+
+
+- Groups should be automatically escaped
+PATTERN
+My name is {{str name}} and (I AM) {{int age}} years old
+STRING
+My name is Scott and (I AM) 29 years old
+OUTPUT
+{"name": "Scott", "age": 29}
+
+
+
+- Except for non-matching groups. Those are important for things like this
+PATTERN
+Cheetas are {{"(?:wild|fast)"}} and my favorite cheeta is named {{str name}} and he is {{"(?:wild|fast)"}}
+STRING
+Cheetas are wild and my favorite cheeta is named Sam and he is fast
+OUTPUT
+{"name": "Sam"}
+
+
+
+- csv data. Basic loops
+PATTERN
+{*loop demographics*}
+    {*case*}{{int zip}},{{str statecode}},{{spstr city}},{{int population}}{*endcase*}
+{*endloop*}
+STRING
+94117,CA,SAN FRANCISCO,42462
+94609,CA,OAKLAND,21981
+80014,CO,AURORA,37617
+10007,NY,NEW YORK,6876
+OUTPUT
+{
+  "demographics": [
+    {
+      "city": "SAN FRANCISCO",
+      "statecode": "CA",
+      "zip": 94117,
+      "population": 42462
+    },
+    {
+      "city": "OAKLAND",
+      "statecode": "CA",
+      "zip": 94609,
+      "population": 21981
+    },
+    {
+      "city": "AURORA",
+      "statecode": "CO",
+      "zip": 80014,
+      "population": 37617
+    },
+    {
+      "city": "NEW YORK",
+      "statecode": "NY",
+      "zip": 10007,
+      "population": 6876
+    }
+  ]
+}
+
+
+
+- Case outside of the loop
+PATTERN
+{*case*}Hi{*endcase*}
+STRING
+Hi
+RAISES
+SparserSyntaxError
+
+
+
+- No end loop
+PATTERN
+{*loop demographics*}
+    {*case*}{{int zip}},{{str statecode}},{{spstr city}},{{int population}}{*endcase*}
+{{int hi}}
+STRING
+94117,CA,SAN FRANCISCO,42462
+94609,CA,OAKLAND,21981
+RAISES
+SparserSyntaxError
+
+
+
+- No end case
+PATTERN
+{*loop demographics*}
+    {*case*}{{int zip}},{{str statecode}},{{spstr city}},{{int population}}
+{*endloop*}
+{{int hi}}
+STRING
+94117,CA,SAN FRANCISCO,42462
+94609,CA,OAKLAND,21981
+123
+RAISES
+SparserSyntaxError
+
+
+
+- Text before case
+PATTERN
+{*loop demographics*} cant have this!
+    {*case*}{{int zip}},{{str statecode}},{{spstr city}},{{int population}}{*endcase*}
+{*endloop*}
+STRING
+94117,CA,SAN FRANCISCO,42462
+94609,CA,OAKLAND,21981
+RAISES
+SparserSyntaxError
+
+
+
+- variable before case
+PATTERN
+{*loop demographics*}{{str not_allowed}}
+    {*case*}{{int zip}},{{str statecode}},{{spstr city}},{{int population}}{*endcase*}
+{*endloop*}
+STRING
+94117,CA,SAN FRANCISCO,42462
+94609,CA,OAKLAND,21981
+RAISES
+SparserSyntaxError
+
+
+
+- unmatched case
+PATTERN
+top
+{*loop demographics*}
+    {*case*}{{int zip}},{{str statecode}},{{spstr city}},{{int population}}{*endcase*}
+    {*case*}{{str zip}},{{str statecode}},{{spstr city}},{{int population}}{*endcase*}
+{*endloop*}
+bottom
+STRING
+top
+94117,CA,SAN FRANCISCO,42462
+Sally sells sea shells by the sea shore
+bottom
+RAISES
+SparserValueError
+
+
+
+- loops can be inline in structure
+PATTERN
+{*loop demographics*}{*case*}{{int zip}},{{str statecode}},{{spstr city}},{{int population}}{*endcase*}{*endloop*}
+STRING
+94117,CA,SAN FRANCISCO,42462
+80014,CO,AURORA,37617
+OUTPUT
+{
+  "demographics": [
+    {
+      "city": "SAN FRANCISCO",
+      "statecode": "CA",
+      "zip": 94117,
+      "population": 42462
+    },
+    {
+      "city": "AURORA",
+      "statecode": "CO",
+      "zip": 80014,
+      "population": 37617
+    }
+  ]
+}
+
+
+
+- Individually run the next test
+PATTERN
+{{spstr object}} {{str subject}} sells are {{spalpha modifier}}.
+STRING
+The seashells she sells are seashore shells.
+OUTPUT
+{
+  "modifier": "seashore shells",
+  "object": "The seashells",
+  "subject": "she"
+}
+
+
+
+- Patterns and loops. Named cases. Two case types.
+PATTERN
+{{"[a-zA-Z]+"}} name is {{str name}} and she is {{int age}} years old
+{*loop rhyme_loop*}
+    {*case sentence_type_a*}{{spstr subject}} sells {{spstr object}} {{"(?:by|on)"}} the {{spstr modifier}}.{*endcase*}
+    {*case sentence_type_b*}{{spstr object}} {{str subject}} sells are {{spalpha modifier}}.{*endcase*}
+{*endloop*}
+STRING
+Her name is Sally and she is 20 years old
+Sally sells seashells by the seashore.
+She sells seashells on the seashell shore.
+The seashells she sells are seashore shells.
+OUTPUT
+{
+  "age": 20,
+  "rhyme_loop": [
+    {
+      "modifier": "seashore",
+      "object": "seashells",
+      "subject": "Sally",
+      "case": "sentence_type_a"
+    },
+    {
+      "modifier": "seashell shore",
+      "object": "seashells",
+      "subject": "She",
+      "case": "sentence_type_a"
+    },
+    {
+      "modifier": "seashore shells",
+      "object": "The seashells",
+      "subject": "she",
+      "case": "sentence_type_b"
+    }
+  ],
+  "name": "Sally"
+}
+
+
+
+- From the docs - handsome cat
+PATTERN
+The {{"[a-zA-Z]+"}} {{"(?:cat|dog|pig)"}} was {{str action}} {{spstr food}} on the {{int date}}{{"st|nd|rd|th"}} of {{str month}}
+STRING
+The handsome cat was slurping pho on the 23rd of July
+OUTPUT
+{
+  "action": "slurping",
+  "food": "pho",
+  "date": 23,
+  "month": "July"
+}
+
+
+
+- One space matches any number of spaces 1
+PATTERN
+Earth Moon
+STRING
+Earth                    Moon
+OUTPUT
+{}
+
+
+
+- One space matches any number of spaces 2
+PATTERN
+Earth {{str where}}
+STRING
+Earth                    Moon
+OUTPUT
+{"where": "Moon"}
+
+
+
+- Any number of spaces matches one space
+PATTERN
+Earth             {{str where}}
+STRING
+Earth Moon
+OUTPUT
+{"where": "Moon"}
+
+
+
+- Any number of spaces matches any number of spaces
+PATTERN
+Earth         {{str where}}
+STRING
+Earth                    Moon
+OUTPUT
+{"where": "Moon"}
+
+
+
+- One newline matches any number of newlines
+PATTERN
+Earth
+Moon
+STRING
+Earth
+
+
+Moon
+OUTPUT
+{}
+
+
+
+- One newline matches any number of newlines 2
+PATTERN
+Earth
+{{str where}}
+STRING
+Earth
+
+Moon
+OUTPUT
+{"where": "Moon"}
+
+
+
+- Any number of newlines matches one newline
+PATTERN
+Earth
+
+{{str where}}
+STRING
+Earth
+Moon
+OUTPUT
+{"where": "Moon"}
+
+
+
+- Any number of newlines matches any number of newlines
+PATTERN
+Earth
+
+
+{{str where}}
+STRING
+Earth
+
+Moon
+OUTPUT
+{"where": "Moon"}
+
+
+
+- From the docs - imdb
+PATTERN
+{*loop imdb_list*}
+    {*case*}{{int rank}}. {{spstr title}} ({{int year}}) {{float rating}}{*endcase*}
+{*endloop*}
+STRING
+1. The Shawshank Redemption (1994)  9.2
+2. The Godfather (1972) 9.2
+3. The Godfather: Part II (1974)    9.0
+4. The Dark Knight (2008)   8.9
+OUTPUT
+{"imdb_list": [
+  {"rating": 9.2, "year": 1994, "rank": 1, "title": "The Shawshank Redemption"},
+  {"rating": 9.2, "year": 1972, "rank": 2, "title": "The Godfather"},
+  {"rating": 9.0, "year": 1974, "rank": 3, "title": "The Godfather: Part II"},
+  {"rating": 8.9, "year": 2008, "rank": 4, "title": "The Dark Knight"}
+]}
+
+
+
+- From the docs - income statement
+PATTERN
+{*loop line_items*}
+    {*case header*}{{spalpha name}}{*endcase*}
+    {*case line_item*} {{spalpha name}} {{currency price}}{*endcase*}
+    {*case total*} Total {{spalpha name}}: {{currency price}}{*endcase*}
+    {*case break*}{*endcase*}
+{*endloop*}
+Net income {{currency net_income}}
+STRING
+Revenues
+ Merchandise sales     $30
+ Other revenues        $8
+ Total Revenues:            $38
+
+Expenses
+ Cost of goods sold    $15
+ Depreciation          $3
+ Wages                 $30
+ Total Expenses:            $28
+
+Net income                - $10
+OUTPUT
+{"line_items": [
+  {"case": "header", "name": "Revenues"},
+  {"case": "line_item", "price": 30.0, "name": "Merchandise sales"},
+  {"case": "line_item", "price": 8.0, "name": "Other revenues"},
+  {"case": "total", "price": 38.0, "name": "Revenues"},
+  {"case": "break"},
+  {"case": "header", "name": "Expenses"},
+  {"case": "line_item", "price": 15.0, "name": "Cost of goods sold"},
+  {"case": "line_item", "price": 3.0, "name": "Depreciation"},
+  {"case": "line_item", "price": 30.0, "name": "Wages"},
+  {"case": "total", "price": 28.0, "name": "Expenses"},
+  {"case": "break"}],
+ "net_income": -10.0}
+
+
+
+- From the docs - patriots
+PATTERN
+The Patriots are {*switch statement*}
+    {*case fact*}successful{*endcase*}
+    {*case opinion*}overrated{*endcase*}
+    {*case telling_it_like_it_is*}ball deflaters and serial cheaters{*endcase*}
+{*endswitch*}.
+STRING
+The Patriots are ball deflaters and serial cheaters.
+OUTPUT
+{"statement": {"case": "telling_it_like_it_is"}}
+
+
+
+- Any number of newlines matches
+PATTERN
+{*loop imdb_list*}
+    {*case*}{{int rank}}. {{spstr title}} ({{int year}}) {{float rating}}{*endcase*}
+{*endloop*}
+STRING
+1. The Shawshank Redemption (1994)  9.2
+2. The Godfather (1972) 9.2
+3. The Godfather: Part II (1974)    9.0
+4. The Dark Knight (2008)   8.9
+OUTPUT
+{"imdb_list": [
+  {"rating": 9.2, "year": 1994, "rank": 1, "title": "The Shawshank Redemption"},
+  {"rating": 9.2, "year": 1972, "rank": 2, "title": "The Godfather"},
+  {"rating": 9.0, "year": 1974, "rank": 3, "title": "The Godfather: Part II"},
+  {"rating": 8.9, "year": 2008, "rank": 4, "title": "The Dark Knight"}
+]}
+
+
+
+- From the docs - Falcon 9
+PATTERN
+The {{spstr rocket}} {{"[a-z]+"}} off at {{int hour}}:{{int minute}} and costs {{currency price}}
+STRING
+The Falcon 9 blasts off at 5:30 and costs $62,000,000.
+OUTPUT
+{
+  "rocket": "Falcon 9",
+  "hour": 5,
+  "minute": 30,
+  "price": 62000000
+}
+
+
+
+- From the docs - MarioKart
+PATTERN
+Winners
+{*loop ranked_players*}
+    {*case*}{{int rank}}. {{str name}}{*endcase*}
+{*endloop*}
+STRING
+Winners
+1. Peach
+2. Yoshi
+3. Luigi
+Play again?
+RAISES
+SparserValueError
+
+
+
+- From the docs - MarioKart corralled loop
+PATTERN
+Winners
+{*loop ranked_players*}
+    {*case*}{{int rank}}. {{str name}}{*endcase*}
+{*endloop*}
+Play again?
+STRING
+Winners
+1. Peach
+2. Yoshi
+3. Luigi
+Play again?
+OUTPUT
+{"ranked_players": [
+  {"rank": 1, "name": "Peach"},
+  {"rank": 2, "name": "Yoshi"},
+  {"rank": 3, "name": "Luigi"}
+  ]}
+
+
+
+- From the docs - exact match fail 1
+PATTERN
+Hello {{alpha planet}}
+STRING
+Hello world, nice to meet you
+RAISES
+SparserValueError
+
+
+
+- From the docs - exact match fail 2
+PATTERN
+Hello {{alpha planet}}, nice to meet you
+STRING
+Hello world
+RAISES
+SparserValueError
+
+
+
+- From the docs - exact match workaround 1
+PATTERN
+Hello {{alpha planet}},{{spstr}}
+STRING
+Hello world, nice to meet you
+OUTPUT
+{"planet": "world"}
+
+
+
+- Loop in an empty string becomes empty list
+PATTERN
+{*loop my_loop*}
+  {*case*}nothing{*endcase*}
+{*endloop*}
+STRING
+OUTPUT
+{"my_loop": []}
+
+
+
+- No-name loop hint works
+PATTERN
+{*loop*}
+  {*case*}hi{*endcase*}
+{*endloop*}
+STRING
+hi
+RAISES
+SparserSyntaxError
+
+
+
+- Implied newline #TODO I don't know how I feel about this
+PATTERN
+Hi
+{*loop my_loop*}
+  {*case*}hi {{int num}}{*endcase*}
+{*endloop*}
+STRING
+Hi
+hi 10
+hi 20
+OUTPUT
+{"my_loop":[
+  {"num": 10},
+  {"num": 20}
+]}
+
+
+
+- Implied after-loop newline #TODO also not sure how I feel about this. This also didn't hit the line I wanted it to
+PATTERN
+Hi
+{*loop my_loop*}
+  {*case*}hi {{int num}}{*endcase*}
+{*endloop*}
+Later
+STRING
+Hi
+hi 10
+hi 20
+Later
+OUTPUT
+{"my_loop":[
+  {"num": 10},
+  {"num": 20}
+]}
+
+
+
+- No-case loops shouldn't work
+PATTERN
+Hi
+{*loop my_loop*}
+{*endloop*}
+Later
+STRING
+Hi
+
+Later
+RAISES
+SparserSyntaxError
+
+
+
+- Newlines are implied in loops
+PATTERN
+{*loop my_loop*}
+{*case*}1{{int two}}3 {*endcase*}
+{*endloop*}
+STRING
+123 123 123 123
+RAISES
+SparserValueError
+
+
+
+- Switch statement
+PATTERN
+{*switch my_switch*}
+  {*case*}Hello {{str what}}{*endcase*}
+  {*case*}Hi {{str who}}{*endcase*}
+{*endswitch*}
+STRING
+Hello World
+OUTPUT
+{"my_switch": {
+  "what": "World"
+  }
+}
+
+
+
+- Switch statement 2
+PATTERN
+{*switch my_switch*}
+  {*case*}Hello {{str what}}{*endcase*}
+  {*case*}Hi {{str who}}{*endcase*}
+{*endswitch*}
+STRING
+Hi Panda
+OUTPUT
+{"my_switch": {
+  "who": "Panda"
+  }
+}
+
+
+
+- Switch statement with stuff
+PATTERN
+My milkshake brings {*switch who_to_the_yard*}
+  {*case boys*}{{spstr how_many}} boys{*endcase*}
+  {*case cats*}{{spstr color}} cats{*endcase*}
+{*endswitch*} to the yard
+STRING
+My milkshake brings blue cats to the yard
+OUTPUT
+{"who_to_the_yard": {
+  "color": "blue",
+  "case": "cats"
+  }
+}
+
+
+
+- Switch statements must match on something
+PATTERN
+My milkshake brings {*switch who_to_the_yard*}
+  {*case boys*}{{spstr how_many}} boys{*endcase*}
+  {*case cats*}{{spstr color}} cats{*endcase*}
+{*endswitch*} to the yard
+STRING
+My milkshake brings blue dogs to the yard
+RAISES
+SparserValueError
+
+
+
+- Switch statements can't contain text within them
+PATTERN
+My milkshake brings {*switch who_to_the_yard*}
+  all the
+  {*case boys*}{{spstr how_many}} boys{*endcase*}
+  {*case cats*}{{spstr color}} cats{*endcase*}
+{*endswitch*} to the yard
+STRING
+My milkshake brings blue dogs to the yard
+RAISES
+SparserSyntaxError
+
+
+
+- Switch statements need at least one case
+PATTERN
+My milkshake brings {*switch who_to_the_yard*}
+{*endswitch*} to the yard
+STRING
+My milkshake brings blue dogs to the yard
+RAISES
+SparserSyntaxError
+
+
+
+- Switch statements can only have case elements as children
+PATTERN
+My milkshake brings {*switch who_to_the_yard*}
+  {*case*}c_a{*endcase*}
+  {{str}}
+{*endswitch*} to the yard
+STRING
+My milkshake brings blue dogs to the yard
+RAISES
+SparserSyntaxError
+
+
+
+- Switch statement cases must close
+PATTERN
+My milkshake brings {*switch who_to_the_yard*}
+  {*case*}c_a
+{*endswitch*} to the yard
+STRING
+My milkshake brings blue dogs to the yard
+RAISES
+SparserSyntaxError
+
+
+
+- Switch statement must itself close
+PATTERN
+My milkshake brings {*switch who_to_the_yard*}
+  {*case*}c_a{*endcase*}
+{{str hi}}
+STRING
+My milkshake brings blue dogs to the yard
+RAISES
+SparserSyntaxError
+
+
+
+- Switch statements need a name
+PATTERN
+a
+{*switch*}
+  {*case*}b{*endcase*}
+  {*case*}c{*endcase*}
+{*endswitch*}
+d
+STRING
+a
+b
+d
+RAISES
+SparserSyntaxError
+
+
+
+- Unnamed variables
+PATTERN
+{{str}} {{str who}} {{str}} {{str what}}
+STRING
+The honeybee makes honey
+OUTPUT
+{"who": "honeybee", "what": "honey"}
+
+
+
+- Unnamed variables with no matchers
+PATTERN
+{{str}} {{str}} {{str}} {{str}}
+STRING
+The honeybee makes honey
+OUTPUT
+{}
+
+
+
+- Lambda match
+PATTERN
+{{"[a-b]+"}} said the finite state machine
+STRING
+abbbabbabba said the finite state machine
+OUTPUT
+{}
+
+
+
+- Lambda variables
+PATTERN
+{{"[a-b]+" machine}} said the finite state machine
+STRING
+abbbabbabba said the finite state machine
+OUTPUT
+{"machine": "abbbabbabba"}
+
+
+
+- Lambda variable group attempt
+PATTERN
+{{"([a-b]+)" machine}} said the finite state machine
+STRING
+abbbabbabba said the finite state machine
+RAISES
+SparserSyntaxError
+
+
+
+- Was a weirdly failing test
+PATTERN
+the {{spstr who}} says {{str sound}}
+STRING
+the dog says bwak
+OUTPUT
+{"who": "dog", "sound": "bwak"}
+
+
+
+#- Loops can be inline in matches
+#PATTERN
+#[{*loop list*}{*case num*}{{int var}}, {*endcase*}{*case string*}{{str var}}, {*endcase*}{*endloop*}]
+#STRING
+#[1, "a", 3, "ba", "ca", 5]
+#OUTPUT
+#{
+#  "list": [
+#    {"case": "num", "var": 1},
+#    {"case": "string", "var": "a"},
+#    {"case": "num", "var": 3},
+#    {"case": "string", "var": "ba"},
+#    {"case": "string", "var": "ca"},
+#    {"case": "num", "var": 5}
+#  ]
+#}
+
+
+# - Nested loops TODO - we might actually need inline loops for this. Why? Loops are broken up by line breaks. The
+# outer loop has to see the inner loop as multiple line breaks for the inner loop to work at all. So, when a case is
+# multiline, it shouldn't contain line breaks perhaps? We can also just make line breaks explicit. casen or \n. If we
+# require \n at the end, it becomes explicit
+#PATTERN
+#{*loop imdb_list*}
+#  {*case*}{*loop imdb_5*}
+#        {*case*}{{int rank}}. {{spstr title}} ({{int year}}) {{float rating}}{*endcase*}
+#  {*endloop*}
+#  {*endcase*}
+#{*endloop*}
+#STRING
+#1. The Shawshank Redemption (1994)  9.2
+#2. The Godfather (1972) 9.2
+#3. The Godfather: Part II (1974)  9.0
+#4. The Dark Knight (2008) 8.9
+#5. 12 Angry Men (1957)  8.9
+#
+#6. Schindler's List (1993)  8.9
+#7. Pulp Fiction (1994)  8.9
+#8. The Lord of the Rings: The Return of the King (2003) 8.9
+#9. The Good, the Bad and the Ugly (1966)  8.8
+#10. Fight Club (1999) 8.8
+#OUTPUT
+#{}
