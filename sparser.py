@@ -47,8 +47,9 @@ BUILT_IN_TYPE_MAP = {
     "int": ("-? ?[0-9,]+", _intify),
     "float": ("-? ?[0-9,.]+", _floatify),
     "currency": ("-? ?[$-]*[0-9,.]+", _floatify),
-    "str": ("\S+", str.strip),
-    "spstr": (".*", str.strip),
+    "str": ("[^\s\n]+", str.strip),
+    "spstr": ("[^\n]+?", str.strip),
+    "anything": (".*", str.strip),
     "alpha": ("[a-zA-Z]+", str.strip),
     "spalpha": ("[a-zA-Z ]+", str.strip),
     "alphanum": ("[a-zA-Z0-9_]+", str.strip),
@@ -223,6 +224,9 @@ class SIS(object):
         """
         raise NotImplementedError
 
+    def content(self):
+        return ' '.join(t.content for t in self.tokens[1:-1])
+
 
 class Dict(SIS):
     # Text, Var, Loop are allowed
@@ -285,7 +289,14 @@ class Dict(SIS):
             self.translated += patt
             if name is not None:
                 self.d_entries.append(DictEntry(name, cb))
-        self.translated += "$"
+        from collections import Counter
+        mc=Counter(d.name for d in self.d_entries).most_common(1)
+        if mc and mc[0][1] > 1:
+            raise SparserSyntaxError("Variable names can only be used once. %r used %d times" % (mc[0][0], mc[0][1]))
+        self.translated += "\Z"
+        print("TRANSLATED")
+        print(self.translated.replace('\n', '\\n'))
+        print("ENDTRANSLATED")
 
     def parse(self, string, do_error=True):
         """
@@ -318,6 +329,7 @@ class Case(SIS):
         :param [TOKEN, ...] token:
         :param SparserCompilationContext ctx:
         """
+        self.tokens = tokens
         match = re.search(tokens[0].patt, tokens[0].content)
         if match and match.group(1) is not None:
             self.var_name = match.group(1).strip()
@@ -334,7 +346,6 @@ class Case(SIS):
         if ret is not None and self.var_name is not None:
             ret["case"] = self.var_name
         return ret
-
 
 class Loop(SIS):
     def __init__(self, tokens, ctx):
@@ -376,30 +387,65 @@ class Loop(SIS):
         """
         :rtype: (str regex, str loop_name, func cb)
         """
-        return "(?P<%s>.*)" % self.loop_name, self.loop_name, self.cb
+        return ("(?P<%s>.*?)" % self.loop_name), self.loop_name, self.cb
 
     def cb(self, string_input):
         """
         :param str string_input: the string captured within the loop
         :rtype: [{var_name: var_val, ...}, ...]
         """
-        string_lines = re.split("\n|\r\n|\r", string_input)
-        if not [l for l in string_lines if l]:
-            return []
+
+        def try_with_remaining(inp):
+            test_str = str(inp)
+            remaining_str = ''
+            while test_str:
+                parsed_case = case_obj.parse(test_str)
+                if parsed_case is not None:
+                    return parsed_case, remaining_str
+                remaining_str = test_str[-1] + remaining_str
+                test_str = test_str[:-1]
+            return None, inp
 
         ret = []
-        for line in string_lines:
+        remaining_str = str(string_input)
+        while remaining_str:
+            print("dkjaskladjs")
+            print(remaining_str)
+            print("")
             for case_obj in self.cases:
-                parsed_case = case_obj.parse(line)
+                parsed_case, remaining_str = try_with_remaining(remaining_str)
                 if parsed_case is not None:
                     ret.append(parsed_case)
                     break
             else:
-                err_msg = '%r unmatched for loop %r: [' % (line, self.loop_name)
-                err_msg += ', '.join("%r" % case_obj.dict.translated for case_obj in self.cases)
+                if remaining_str.startswith('\n'):
+                    remaining_str = remaining_str[1:]
+                    continue
+                err_msg = '%r unmatched for loop %r: [' % (remaining_str, self.loop_name)
+                err_msg += ', '.join("%r" % re.sub("[ \n]+", " ", case_obj.content()) for case_obj in self.cases)
                 err_msg += ']'
                 raise SparserValueError(err_msg)
+
         return ret
+
+
+        # string_lines = re.split("\n|\r\n|\r", string_input)
+        # if not filter(None, string_lines):
+        #     return []
+
+        # ret = []
+        # for line in string_lines:
+        #     for case_obj in self.cases:
+        #         parsed_case = case_obj.parse(line)
+        #         if parsed_case is not None:
+        #             ret.append(parsed_case)
+        #             break
+        #     else:
+        #         err_msg = '%r unmatched for loop %r: [' % (line, self.loop_name)
+        #         err_msg += ', '.join("%r" % case_obj.dict.translated for case_obj in self.cases)
+        #         err_msg += ']'
+        #         raise SparserValueError(err_msg)
+        # return ret
 
 
 class Switch(SIS):

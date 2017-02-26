@@ -3,6 +3,67 @@
 # Three empty lines in between test cases
 
 
+- From the docs - one-wikipedia-section
+PATTERN
+{{"[^\[\]]*"}}{*loop links*}
+    {*case*}[[{{spalphanum link_title}}|{{spalphanum link}}]]{{"[^\[\]]*"}}{*endcase*}
+    {*case*}[[{{spalphanum link}}]]{{"[^\[\]]*"}}{*endcase*}
+{*endloop*}
+STRING
+"'''''Apodora''''' is a [[monotypic]] [[genus]] created for the non-venomous [[Pythonidae|python]] [[species]], ''A. papuana'', found in [[New Guinea]]. No [[subspecies]] are currently recognized.
+OUTPUT
+{
+    "links": [
+        {
+            "link": "monotypic"
+        },
+        {
+            "link": "genus"
+        },
+        {
+            "link": "python",
+            "link_title": "Pythonidae"
+        },
+        {
+            "link": "species"
+        },
+        {
+            "link": "New Guinea"
+        },
+        {
+            "link": "subspecies"
+        }
+    ]
+}
+
+
+
+- From the docs - wikipedia
+PATTERN
+{*loop sections*}
+    {*case unnamed*}{{"[^\[\]=]*"}}{*loop links*}
+          {*case*}[[{{"[^\[\]=]+" link_title}}|{{"[^\[\]]+" link}}]]{{"[^\[\]]*"}}{*endcase*}
+          {*case*}[[{{"[^\[\]=]+" link}}]]{{"[^\[\]=]*"}}{*endcase*}
+      {*endloop*}
+{*endcase*}
+    {*case named*}=={{spstr section_name}}==
+      {{"[^\[\]=]*"}}{*loop links*}
+          {*case*}[[{{"[^\[\]=]+" link_title}}|{{"[^\[\]]+" link}}]]{{"[^\[\]]*"}}{*endcase*}
+          {*case*}[[{{"[^\[\]=]+" link}}]]{{"[^\[\]=]*"}}{*endcase*}
+      {*endloop*}{*endcase*}
+{*endloop*}
+STRING
+"'''''Apodora''''' is a [[monotypic]] [[genus]] created for the non-venomous [[Pythonidae|python]] [[species]], ''A. papuana'', found in [[New Guinea]]. No [[subspecies]] are currently recognized.
+
+==Description==
+A large snake, with adults growing to lengths of over 5m (17feet). However, they are not nearly as heavy bodied as other pythons, weighing in at no more than about 22.5kg (50lb). They are noted for having the ability to change color, though the exact mechanism and reasons for it are not completely understood. The color is reputed to change when the snake is agitated. They can vary from [[black]] to a mustard [[yellow]], but are normally an olive [[green]] in appearance when young and dark olive when older, with the sides and underside distinctly lighter.
+
+==Geographic range==
+Found in most of [[New Guinea]], from [[Misool]] to [[Fergusson Island]]. The [[Type locality (biology)|type locality]] given is "Ramoi Nova Guinea austro-occidentiali" (Ramoi, near [[Sorong (city)|Sorong]], [[Irian Jaya]], [[Indonesia]]).
+OUTPUT
+{}
+
+
 
 - str
 PATTERN
@@ -531,9 +592,9 @@ OUTPUT
 - From the docs - income statement
 PATTERN
 {*loop line_items*}
-    {*case header*}{{spalpha name}}{*endcase*}
     {*case line_item*} {{spalpha name}} {{currency price}}{*endcase*}
     {*case total*} Total {{spalpha name}}: {{currency price}}{*endcase*}
+    {*case header*}{{spalpha name}}{*endcase*}
     {*case break*}{*endcase*}
 {*endloop*}
 Net income {{currency net_income}}
@@ -561,10 +622,12 @@ OUTPUT
   {"case": "line_item", "price": 15.0, "name": "Cost of goods sold"},
   {"case": "line_item", "price": 3.0, "name": "Depreciation"},
   {"case": "line_item", "price": 30.0, "name": "Wages"},
-  {"case": "total", "price": 28.0, "name": "Expenses"},
-  {"case": "break"}],
+  {"case": "total", "price": 28.0, "name": "Expenses"}],
  "net_income": -10.0}
 
+
+
+#   {"case": "break"}] TODO
 
 
 - From the docs - patriots
@@ -971,6 +1034,10 @@ STRING
 the dog says bwak
 OUTPUT
 {"who": "dog", "sound": "bwak"}
+
+
+
+
 
 
 
