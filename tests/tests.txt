@@ -3,6 +3,25 @@
 # Three empty lines in between test cases
 
 
+- spaces are " *" at the beginning of lines
+PATTERN
+{*switch the_switch*}
+  {*case*}
+    This pattern is for
+    multiline
+    cases
+  {*endcase*}
+{*endswitch*}
+STRING
+This pattern is for
+multiline
+cases
+OUTPUT
+{
+  "the_switch": {}
+}
+
+
 
 - str
 PATTERN

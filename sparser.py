@@ -10,6 +10,7 @@ import sys
 from sparser_exceptions import SparserValueError, SparserSyntaxError
 
 if sys.version_info[0] > 2:
+    # python 3
     # this is needed because custom-type callbacks can use old-style types and we need to ensure that our types
     # are compatible
     from builtins import zip
@@ -472,10 +473,16 @@ class Text(SIS):
         self.patt = tokens[0].content
         self.patt = re.sub(' +', ' ', self.patt)
         self.patt = re.sub('\n+', '\n', self.patt)
+        self.patt = re.sub('\n $', '\n', self.patt)
+        self.patt = re.sub('^ \n', '\n', self.patt)
         self.patt = re.escape(self.patt)
-        self.patt = re.sub(' ', ' +', self.patt)
-        self.patt = re.sub('\n', '\n+', self.patt)
+        self.patt = re.sub('\\\n\\\ ', '\n *', self.patt)
+        self.patt = re.sub('[^\n] ', ' +', self.patt)
+        self.patt = re.sub('^\\\\\n', '\n*', self.patt)
+        self.patt = re.sub('\\\\\n$', '\n*', self.patt)
+        self.patt = re.sub('(.)\\\\\n(.)', lambda x: x.group(1) + '\n+' + x.group(2), self.patt)
 
+        print(self.patt)
 
     def translate(self):
         """
