@@ -302,7 +302,8 @@ Or, of course, a `{{spstr}}` works in a pinch
 
 # Loops and newlines
 Loops are designed to handle table-like strings so newlines are implied in
-loop-matching. In the future, Sparser might support inline loops. In the
+loop-matching. Multiline-loops are supported but inline loops are not.
+Sparser should support inline loops in version 0.2. In the
 meantime, you can use the regex bar (`|`) operator in custom or lambda
 types.
 
