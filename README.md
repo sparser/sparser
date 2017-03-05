@@ -363,12 +363,13 @@ If you just want to return the un-modified string, pass in `None`
 
 TODO
 ======
-- Ask Akshay newlines explicit (can add syntax sugar later)
 - Finish includes example
-- Ensure that nested loops work
 - Update docs
 - upload to pip
+- ensure no nested loops or switches
+
 After release
+- Nested loops (will need to rewrite major parts as a string gobbler)
 - Inline loops (If a loop is not adjacent to \n on both sides, we should not automatically newline it)
 - Cleanup the building of the AST
 - Add unicode-compatible currency (euros, yen, etc.)

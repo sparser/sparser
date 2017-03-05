@@ -67,92 +67,92 @@ class TestSparser(unittest.TestCase):
         else:
             raise Exception("Needs an OUTPUT or a RAISES")
 
-    # def test_output_tester(self):
-    #     # just to make sure tests actually work
-    #     test = "PATTERN"\
-    #            "{{int num}}"\
-    #            "STRING"\
-    #            "This is not a number"\
-    #            "OUTPUT"\
-    #            "{\"num\": 5}"
-    #     with self.assertRaises(Exception):
-    #         self._test_raw_test(test)
+    def test_output_tester(self):
+        # just to make sure tests actually work
+        test = "PATTERN"\
+               "{{int num}}"\
+               "STRING"\
+               "This is not a number"\
+               "OUTPUT"\
+               "{\"num\": 5}"
+        with self.assertRaises(Exception):
+            self._test_raw_test(test)
 
-    # def test_raises_tester(self):
-    #     test = "PATTERN"\
-    #            "(.*?)"\
-    #            "STRING"\
-    #            "Invalid"\
-    #            "RAISES"\
-    #            "SparserSyntaxError"
-    #     with self.assertRaises(Exception):
-    #         self._test_raw_test(test)
+    def test_raises_tester(self):
+        test = "PATTERN"\
+               "(.*?)"\
+               "STRING"\
+               "Invalid"\
+               "RAISES"\
+               "SparserSyntaxError"
+        with self.assertRaises(Exception):
+            self._test_raw_test(test)
 
-    # def test_valid_tester(self):
-    #     test = "PATTERN"\
-    #            "{{str the_str}}"\
-    #            "STRING"\
-    #            "Invalid"
-    #     with self.assertRaises(Exception):
-    #         self._test_raw_test(test)
+    def test_valid_tester(self):
+        test = "PATTERN"\
+               "{{str the_str}}"\
+               "STRING"\
+               "Invalid"
+        with self.assertRaises(Exception):
+            self._test_raw_test(test)
 
-    # def test_tokenizer(self):
-    #     # tests the workings of the tokenizer and also that the repr on the tokens works
-    #     inp = "txt{{int v1}}{*loop a*}{*case*}txt{{str v2}}txt{*endcase*}" \
-    #           "{*case b*}{*switch la*}{*case*}{*include abc*}{*endcase*}{*endswitch*}{*endcase*}{*endloop*}"
-    #     tokens = sp._root_tokenize(inp, includes_dict={'abc': 'blah'})
-    #     exp_order = [sp.TEXT, sp.VAR, sp.TEXT, sp.OPENLOOP, sp.TEXT, sp.OPENCASE, sp.TEXT, sp.VAR, sp.TEXT,
-    #                  sp.CLOSECASE, sp.TEXT, sp.OPENCASE, sp.TEXT, sp.OPENSWITCH, sp.TEXT, sp.OPENCASE, sp.TEXT,
-    #                  sp.CLOSECASE, sp.TEXT, sp.CLOSESWITCH, sp.TEXT, sp.CLOSECASE, sp.TEXT, sp.CLOSELOOP]
-    #     for exp_cls, act_tok in zip(exp_order, tokens):
-    #         if not isinstance(act_tok, exp_cls):
-    #             raise AssertionError("Expecting %r. Received %r" % (exp_cls, act_tok))
-    #         assert repr(act_tok)
+    def test_tokenizer(self):
+        # tests the workings of the tokenizer and also that the repr on the tokens works
+        inp = "txt{{int v1}}{*loop a*}{*case*}txt{{str v2}}txt{*endcase*}" \
+              "{*case b*}{*switch la*}{*case*}{*include abc*}{*endcase*}{*endswitch*}{*endcase*}{*endloop*}"
+        tokens = sp._root_tokenize(inp, includes_dict={'abc': 'blah'})
+        exp_order = [sp.TEXT, sp.VAR, sp.TEXT, sp.OPENLOOP, sp.TEXT, sp.OPENCASE, sp.TEXT, sp.VAR, sp.TEXT,
+                     sp.CLOSECASE, sp.TEXT, sp.OPENCASE, sp.TEXT, sp.OPENSWITCH, sp.TEXT, sp.OPENCASE, sp.TEXT,
+                     sp.CLOSECASE, sp.TEXT, sp.CLOSESWITCH, sp.TEXT, sp.CLOSECASE, sp.TEXT, sp.CLOSELOOP]
+        for exp_cls, act_tok in zip(exp_order, tokens):
+            if not isinstance(act_tok, exp_cls):
+                raise AssertionError("Expecting %r. Received %r" % (exp_cls, act_tok))
+            assert repr(act_tok)
 
-    # def test_cli(self):
-    #     string_io = StringIO()
-    #     sp._main(['--pattern-string', '"{{str what}} world"', '--input-string', '"hello world"'], string_io)
-    #     ret = json.loads(string_io.getvalue())
-    #     self.assertEqual(ret, {"what": "hello"})
+    def test_cli(self):
+        string_io = StringIO()
+        sp._main(['--pattern-string', '"{{str what}} world"', '--input-string', '"hello world"'], string_io)
+        ret = json.loads(string_io.getvalue())
+        self.assertEqual(ret, {"what": "hello"})
 
-    #     # TODO fake files
-    #     # sp._main(['--pattern-string', '"{{str what}} world"', '--input-file', "<<<", '"hello world"'], string_io)
-    #     # ret = json.loads(string_io.getvalue())
-    #     # self.assertEqual(ret, {"what": "hello"})
+        # TODO fake files
+        # sp._main(['--pattern-string', '"{{str what}} world"', '--input-file', "<<<", '"hello world"'], string_io)
+        # ret = json.loads(string_io.getvalue())
+        # self.assertEqual(ret, {"what": "hello"})
 
-    #     # sp._main(['--input-string', '"hello world"', '--pattern-file', '<<<', '"{{str what}} world"'], string_io)
-    #     # ret = json.loads(string_io.getvalue())
-    #     # self.assertEqual(ret, {"what": "hello"})
+        # sp._main(['--input-string', '"hello world"', '--pattern-file', '<<<', '"{{str what}} world"'], string_io)
+        # ret = json.loads(string_io.getvalue())
+        # self.assertEqual(ret, {"what": "hello"})
 
-    # def test_includes(self):
-    #     patt = "{{str a1}} {*include sub_patt*} {{str a2}}"
-    #     sub_patt = "b{{'[c]{5}' cs}}b"
-    #     string = "a bcccccb a"
-    #     self.assertEqual(
-    #         sp.parse(patt, string, includes={"sub_patt": sub_patt}),
-    #         {"a1": "a", "a2": "a", "cs": "ccccc"})
-    #     with self.assertRaises(SparserValueError):
-    #         sp.parse(patt, string)
+    def test_includes(self):
+        patt = "{{str a1}} {*include sub_patt*} {{str a2}}"
+        sub_patt = "b{{'[c]{5}' cs}}b"
+        string = "a bcccccb a"
+        self.assertEqual(
+            sp.parse(patt, string, includes={"sub_patt": sub_patt}),
+            {"a1": "a", "a2": "a", "cs": "ccccc"})
+        with self.assertRaises(SparserValueError):
+            sp.parse(patt, string)
 
-    # def test_match(self):
-    #     patt = "Hello {{alpha where}}"
-    #     good_string = "Hello world"
-    #     bad_string = "Hello world. How are you?"
-    #     self.assertTrue(sp.match(patt, good_string))
-    #     self.assertFalse(sp.match(patt, bad_string))
+    def test_match(self):
+        patt = "Hello {{alpha where}}"
+        good_string = "Hello world"
+        bad_string = "Hello world. How are you?"
+        self.assertTrue(sp.match(patt, good_string))
+        self.assertFalse(sp.match(patt, bad_string))
 
-    # def test_custom_types(self):
-    #     patt = "the {{animal who}} says {{str sound}}"
-    #     custom_types = {"animal": ("(?:cat|dog|horse)", str.upper)}
-    #     string = "the dog says bwak"
-    #     self.assertEqual(
-    #         sp.parse(patt, string, custom_types=custom_types),
-    #         {"who": "DOG", "sound": "bwak"})
+    def test_custom_types(self):
+        patt = "the {{animal who}} says {{str sound}}"
+        custom_types = {"animal": ("(?:cat|dog|horse)", str.upper)}
+        string = "the dog says bwak"
+        self.assertEqual(
+            sp.parse(patt, string, custom_types=custom_types),
+            {"who": "DOG", "sound": "bwak"})
 
-    #     # no matching groups allowed in custom types
-    #     custom_types = {"animal": ("(cat|dog|horse)", str.upper)}
-    #     with self.assertRaises(SparserSyntaxError):
-    #         sp.parse(patt, string, custom_types=custom_types)
+        # no matching groups allowed in custom types
+        custom_types = {"animal": ("(cat|dog|horse)", str.upper)}
+        with self.assertRaises(SparserSyntaxError):
+            sp.parse(patt, string, custom_types=custom_types)
 
 
 if __name__ == "__main__":
