@@ -451,7 +451,7 @@ class Switch(SIS):
             parsed_case = case_obj.parse(string_input)
             if parsed_case is not None:
                 return parsed_case
-
+        import ipdb; ipdb.set_trace()
         err_msg = '%r unmatched for switch %r: [' % (string_input, self.switch_name)
         err_msg += ', '.join("%r" % case_obj.dict.translated_patt for case_obj in self.cases)
         err_msg += ']'

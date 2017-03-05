@@ -23,6 +23,35 @@ OUTPUT
 
 
 
+- multiline loops are cool
+PATTERN
+{*loop lp*}
+  {*case pc*}
+    Patty
+    Cake
+  {*endcase*}
+  {*case bm*}
+    Bakers
+    Man
+  {*endcase*}
+{*endloop*}
+STRING
+Patty
+Cake
+Patty
+Cake
+Bakers
+Man
+OUTPUT
+{"lp": [
+  {"case": "pc"},
+  {"case": "pc"},
+  {"case": "bm"}
+  ]
+}
+
+
+
 - str
 PATTERN
 My name is {{str name}}
@@ -990,3 +1019,97 @@ STRING
 the dog says bwak
 OUTPUT
 {"who": "dog", "sound": "bwak"}
+
+
+
+- Nested loops fail
+PATTERN
+{*loop lp*}
+  {*case a*}
+    INTS
+    {*loop lpa*}
+      {{int}}-{{int}}
+    {*endloop*}
+
+  {*endcase*}
+  {*case b*}
+    FLOATS
+    {*loop lpb*}
+      {{float}}-{{float}}
+    {*endloop*}
+
+  {*endcase*}
+{*endloop*}
+STRING
+
+INTS
+0-1
+5-6
+
+FLOATS
+5.0-9.4
+9.7-3.4
+
+INTS
+40-0
+90-2
+
+RAISES
+SparserSyntaxError
+
+
+
+- Nested switches fail
+PATTERN
+{*switch sw*}
+  {*case ints*}
+    {*switch swi*}
+      {*case 1*}1{*endcase*}
+      {*case 2*}2{*endcase*}
+    {*endswitch*}
+  {*endcase*}
+  {*case alphas*}
+    {*switch swa*}
+      {*case a*}a{*endcase*}
+      {*case b*}b{*endcase*}
+    {*endswitch*}
+  {*endcase*}
+{*endswitch*}
+STRING
+a
+RAISES
+SparserSyntaxError
+
+
+
+- Switches in loops are cool
+PATTERN
+{*loop lp*}
+  {*case a*}
+    INTS
+    {*switch lpa*}
+      {*case 1*}1{*endcase*}
+      {*case 2*}2{*endcase*}
+    {*endswitch*}
+  {*endcase*}
+  {*case b*}
+    ALPHAS
+    {*switch lpb*}
+      {*case a*}a{*endcase*}
+      {*case b*}b{*endcase*}
+    {*endswitch*}
+  {*endcase*}
+{*endloop*}
+STRING
+INTS
+1
+ALPHAS
+a
+INTS
+2
+INTS
+1
+OUTPUT
+{}
+
+
