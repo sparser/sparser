@@ -398,18 +398,28 @@ class Loop(SIS):
             return []
 
         ret = []
-        for line in string_lines:
-            for case_obj in self.cases:
-                parsed_case = case_obj.parse(line)
-                if parsed_case is not None:
-                    ret.append(parsed_case)
-                    break
+        while string_lines:
+            string_lines, parsed_case = self._generate_combs(string_lines)
+            if parsed_case is not None:
+                ret.append(parsed_case)
             else:
+                line = '\n'.join(string_lines)
                 err_msg = '%r unmatched for loop %r: [' % (line, self.loop_name)
                 err_msg += ', '.join("%r" % case_obj.dict.translated_patt for case_obj in self.cases)
                 err_msg += ']'
                 raise SparserValueError(err_msg)
         return ret
+
+    def _generate_combs(self, string_lines):
+        i = 1
+        while i <= len(string_lines):
+            line = '\n'.join(string_lines[:i])
+            for case_obj in self.cases:
+                parsed_case = case_obj.parse(line)
+                if parsed_case is not None:
+                    return string_lines[i:], parsed_case
+            i += 1
+        return string_lines, None
 
 
 class Switch(SIS):
@@ -451,7 +461,6 @@ class Switch(SIS):
             parsed_case = case_obj.parse(string_input)
             if parsed_case is not None:
                 return parsed_case
-        import ipdb; ipdb.set_trace()
         err_msg = '%r unmatched for switch %r: [' % (string_input, self.switch_name)
         err_msg += ', '.join("%r" % case_obj.dict.translated_patt for case_obj in self.cases)
         err_msg += ']'

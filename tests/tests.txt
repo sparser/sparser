@@ -1082,34 +1082,6 @@ SparserSyntaxError
 
 
 
-- Switches in loops are cool
-PATTERN
-{*loop lp*}
-  {*case a*}
-    INTS
-    {*switch lpa*}
-      {*case 1*}1{*endcase*}
-      {*case 2*}2{*endcase*}
-    {*endswitch*}
-  {*endcase*}
-  {*case b*}
-    ALPHAS
-    {*switch lpb*}
-      {*case a*}a{*endcase*}
-      {*case b*}b{*endcase*}
-    {*endswitch*}
-  {*endcase*}
-{*endloop*}
-STRING
-INTS
-1
-ALPHAS
-a
-INTS
-2
-INTS
-1
-OUTPUT
-{}
+
 
 
