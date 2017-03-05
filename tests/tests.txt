@@ -555,6 +555,7 @@ PATTERN
     {*case total*} Total {{spalpha name}}: {{currency price}}{*endcase*}
     {*case break*}{*endcase*}
 {*endloop*}
+
 Net income {{currency net_income}}
 STRING
 Revenues
@@ -580,8 +581,7 @@ OUTPUT
   {"case": "line_item", "price": 15.0, "name": "Cost of goods sold"},
   {"case": "line_item", "price": 3.0, "name": "Depreciation"},
   {"case": "line_item", "price": 30.0, "name": "Wages"},
-  {"case": "total", "price": 28.0, "name": "Expenses"},
-  {"case": "break"}],
+  {"case": "total", "price": 28.0, "name": "Expenses"}],
  "net_income": -10.0}
 
 

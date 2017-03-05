@@ -272,33 +272,33 @@ class Dict(SIS):
             else:
                 raise SparserSyntaxError("Token %r cannot be here" % token)
 
-        self._translate_members(all_members)
+        self._set_pattern(all_members)
 
-    def _translate_members(self, members):
+    def _set_pattern(self, members):
         """
         :param [SIS, ...] members:
-        :rtype: str, [DictEntry, ...]
         """
-        self.translated = ''
+        self.translated_patt = ''
         self.d_entries = []
         for member in members:
             patt, name, cb = member.translate()
-            self.translated += patt
+            self.translated_patt += patt
             if name is not None:
                 self.d_entries.append(DictEntry(name, cb))
-        self.translated += "$"
+        self.translated_patt += "$"  # dicts always need to match to the end of input
+
 
     def parse(self, string, do_error=True):
         """
         :param str string: the string captured within the dict
         :rtype: {var_name: var_val}
         """
-        match = re.match(self.translated, string, re.DOTALL)
+        match = re.match(self.translated_patt, string, re.DOTALL)
         if not match:
             if not do_error:
                 return None
             # separate by loops so that we can point closer to the place that doesn't work
-            for section in self.translated.split('(?P<.*?>.*?)'):
+            for section in self.translated_patt.split('(?P<.*?>.*?)'):
                 if not re.search(section, string, re.DOTALL):
                     raise SparserValueError("%r is unmatched for string %r" % (section, string))
             raise SparserUnexpectedError("Unexpected error finding where the string doesn't match")
@@ -375,16 +375,17 @@ class Loop(SIS):
 
     def translate(self):
         """
-        :rtype: (str regex, str loop_name, func cb)
+        :rtype: (str patt, str loop_name, func cb)
         """
-        return "(?P<%s>.*)" % self.loop_name, self.loop_name, self.cb
+        patt = "(?P<%s>.*?)" % self.loop_name
+        return patt, self.loop_name, self.cb
 
     def cb(self, string_input):
         """
         :param str string_input: the string captured within the loop
         :rtype: [{var_name: var_val, ...}, ...]
         """
-        string_lines = re.split("\n|\r\n|\r", string_input)
+        string_lines = re.split("\r\n|\n|\r", string_input) # split into lines by any common newline type
         if not [l for l in string_lines if l]:
             return []
 
@@ -397,7 +398,7 @@ class Loop(SIS):
                     break
             else:
                 err_msg = '%r unmatched for loop %r: [' % (line, self.loop_name)
-                err_msg += ', '.join("%r" % case_obj.dict.translated for case_obj in self.cases)
+                err_msg += ', '.join("%r" % case_obj.dict.translated_patt for case_obj in self.cases)
                 err_msg += ']'
                 raise SparserValueError(err_msg)
         return ret
@@ -456,7 +457,7 @@ class Switch(SIS):
                 return parsed_case
 
         err_msg = '%r unmatched for switch %r: [' % (string_input, self.switch_name)
-        err_msg += ', '.join("%r" % case_obj.dict.translated for case_obj in self.cases)
+        err_msg += ', '.join("%r" % case_obj.dict.translated_patt for case_obj in self.cases)
         err_msg += ']'
         raise SparserValueError(err_msg)
 
@@ -481,7 +482,6 @@ class Text(SIS):
         self.patt = re.sub('^\\\\\n', '\n*', self.patt)
         self.patt = re.sub('\\\\\n$', '\n*', self.patt)
         self.patt = re.sub('(.)\\\\\n(.)', lambda x: x.group(1) + '\n+' + x.group(2), self.patt)
-        print(self.patt)
 
 
     def translate(self):
