@@ -49,7 +49,7 @@ BUILT_IN_TYPE_MAP = {
     "float": ("-? ?[0-9,.]+", _floatify),
     "currency": ("-? ?[$-]*[0-9,.]+", _floatify),
     "str": ("\S+", str.strip),
-    "spstr": (".*", str.strip),
+    "spstr": (".+", str.strip),
     "alpha": ("[a-zA-Z]+", str.strip),
     "spalpha": ("[a-zA-Z ]+", str.strip),
     "alphanum": ("[a-zA-Z0-9_]+", str.strip),
@@ -160,7 +160,6 @@ def _preprocess(tokens, includes_dict):
                 if template_name not in includes_dict:
                     raise SparserValueError("Includes template %r not provided" % template_name)
                 include_patt = includes_dict[template_name]
-                del includes_dict[template_name]
                 tokens = tokens[:i] + _tokenize(include_patt, includes_dict) + tokens[i+1:]
                 break
         else:
@@ -215,6 +214,51 @@ class DictEntry(object):
         self.cb = cb
 
 
+def _make_loop(tokens, ctx):
+    loop_tokens = [tokens.pop(0)]
+    while True:
+        token = tokens.pop(0)
+        loop_tokens.append(token)
+        if isinstance(token, OPENLOOP):
+            raise SparserSyntaxError("Nested loops are not supported in Sparser v0.1")
+        if isinstance(token, CLOSELOOP):
+            break
+        if not tokens:
+            raise SparserSyntaxError("{*loop*} not closed with a matching {*endloop*}")
+    return tokens, Loop(loop_tokens, ctx)
+
+
+def _make_switch(tokens, ctx):
+    switch_tokens = [tokens.pop(0)]
+    while True:
+        token = tokens.pop(0)
+        switch_tokens.append(token)
+        if isinstance(token, OPENSWITCH):
+            raise SparserSyntaxError("Nested switches are not supported in Sparser v0.1")
+        if isinstance(token, CLOSESWITCH):
+            break
+        if not tokens:
+            raise SparserSyntaxError("{*switch*} not closed with a matching {*endswitch*}")
+    return tokens, Switch(switch_tokens, ctx)
+
+
+def _make_case(tokens, ctx):
+    nested = 1
+    case_tokens = [tokens.pop(0)]
+    while True:
+        token = tokens.pop(0)
+        case_tokens.append(token)
+        if isinstance(token, OPENCASE):
+            nested += 1
+        if isinstance(token, CLOSECASE):
+            nested -= 1
+            if not nested:
+                break
+        if not tokens:
+            raise SparserSyntaxError("{*case*} not closed with a matching {*endcase*}")
+    return tokens, Case(case_tokens, ctx)
+
+
 class SIS(object):
     # SparserIntermediateSymbol
     def __init__(self, tokens, ctx):
@@ -234,40 +278,17 @@ class Dict(SIS):
         """
         all_members = []
         while tokens:
-            token = tokens.pop(0)
-            if isinstance(token, OPENLOOP):
-                nested = 1
-                loop_tokens = [token]
-                while True:
-                    token = tokens.pop(0)
-                    loop_tokens.append(token)
-                    if isinstance(token, OPENLOOP):
-                        nested += 1
-                    elif isinstance(token, CLOSELOOP):
-                        nested -= 1
-                        if nested == 0:
-                            break
-                    if not tokens:
-                        raise SparserSyntaxError("{*loop*} not closed with a matching {*endloop*}")
-                all_members.append(Loop(loop_tokens, ctx))
-            elif isinstance(token, OPENSWITCH):
-                nested = 1
-                switch_tokens = [token]
-                while True:
-                    token = tokens.pop(0)
-                    switch_tokens.append(token)
-                    if isinstance(token, OPENSWITCH):
-                        nested += 1
-                    if isinstance(token, CLOSESWITCH):
-                        nested -= 1
-                        if nested == 0:
-                            break
-                    if not tokens:
-                        raise SparserSyntaxError("{*switch*} not closed with a matching {*endswitch*}")
-                all_members.append(Switch(switch_tokens, ctx))
-            elif isinstance(token, VAR):
+            if isinstance(tokens[0], OPENLOOP):
+                tokens, loop = _make_loop(tokens, ctx)
+                all_members.append(loop)
+            elif isinstance(tokens[0], OPENSWITCH):
+                tokens, switch = _make_switch(tokens, ctx)
+                all_members.append(switch)
+            elif isinstance(tokens[0], VAR):
+                token = tokens.pop(0)
                 all_members.append(Var([token], ctx))
-            elif isinstance(token, TEXT):
+            elif isinstance(tokens[0], TEXT):
+                token = tokens.pop(0)
                 all_members.append(Text([token], ctx))
             else:
                 raise SparserSyntaxError("Token %r cannot be here" % token)
@@ -287,7 +308,6 @@ class Dict(SIS):
                 self.d_entries.append(DictEntry(name, cb))
         self.translated_patt += "$"  # dicts always need to match to the end of input
 
-
     def parse(self, string, do_error=True):
         """
         :param str string: the string captured within the dict
@@ -301,7 +321,7 @@ class Dict(SIS):
             for section in self.translated_patt.split('(?P<.*?>.*?)'):
                 if not re.search(section, string, re.DOTALL):
                     raise SparserValueError("%r is unmatched for string %r" % (section, string))
-            raise SparserUnexpectedError("Unexpected error finding where the string doesn't match")
+            raise SparserValueError("%r is unmatched" % string)
 
         ret = {}
         for sub_match, d_entry in zip(match.groups(), self.d_entries):
@@ -349,23 +369,11 @@ class Loop(SIS):
         tokens = tokens[1:-1]  # pop off LOOPSTART LOOPEND
         self.cases = []
         while tokens:
-            token = tokens.pop(0)
-            if isinstance(token, OPENCASE):
-                nested = 1
-                case_tokens = [token]
-                while True:
-                    token = tokens.pop(0)
-                    case_tokens.append(token)
-                    if isinstance(token, OPENCASE):
-                        nested += 1
-                    if isinstance(token, CLOSECASE):
-                        nested -= 1
-                        if nested == 0:
-                            break
-                    if not tokens:
-                        raise SparserSyntaxError("{*case*} not closed with a matching {*endcase*}")
-                self.cases.append(Case(case_tokens, ctx))
-            elif isinstance(token, TEXT):
+            if isinstance(tokens[0], OPENCASE):
+                tokens, case = _make_case(tokens, ctx)
+                self.cases.append(case)
+            elif isinstance(tokens[0], TEXT):
+                token = tokens.pop(0)
                 if token.content.strip():
                     raise SparserSyntaxError("{*loop*} tags can only contain {*case*}s")
             else:
@@ -416,23 +424,11 @@ class Switch(SIS):
         tokens = tokens[1:-1]  # pop off LOOPSTART LOOPEND
         self.cases = []
         while tokens:
-            token = tokens.pop(0)
-            if isinstance(token, OPENCASE):
-                nested = 1
-                case_tokens = [token]
-                while True:
-                    token = tokens.pop(0)
-                    case_tokens.append(token)
-                    if isinstance(token, OPENCASE):
-                        nested += 1
-                    if isinstance(token, CLOSECASE):
-                        nested -= 1
-                        if not nested:
-                            break
-                    if not tokens:
-                        raise SparserSyntaxError("{*case*} not closed with a matching {*endcase*}")
-                self.cases.append(Case(case_tokens, ctx))
-            elif isinstance(token, TEXT):
+            if isinstance(tokens[0], OPENCASE):
+                tokens, case = _make_case(tokens, ctx)
+                self.cases.append(case)
+            elif isinstance(tokens[0], TEXT):
+                token = tokens.pop(0)
                 if token.content.strip():
                     raise SparserSyntaxError("{*switch*} tags can only contain {*case*}s")
             else:
@@ -482,7 +478,6 @@ class Text(SIS):
         self.patt = re.sub('^\\\\\n', '\n*', self.patt)
         self.patt = re.sub('\\\\\n$', '\n*', self.patt)
         self.patt = re.sub('(.)\\\\\n(.)', lambda x: x.group(1) + '\n+' + x.group(2), self.patt)
-
 
     def translate(self):
         """

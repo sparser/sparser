@@ -136,7 +136,7 @@ multi-option matches
 
     >>> patt = """\
         The Patriots are {*switch statement*}
-            {*case fact*}successful{*endcase*}
+            {*case fact*}an NFL team{*endcase*}
             {*case opinion*}overrated{*endcase*}
             {*case telling_it_like_it_is*}ball deflaters and serial cheaters{*endcase*}
         {*endswitch*}."""
@@ -146,22 +146,48 @@ multi-option matches
     {"statement": {"case": "telling_it_like_it_is"}}
 
 You can use the {*include <what>*} statement to embed patterns in patterns.
-This works on a preprocessor level (like #define of C fame) so it is
+This works on a preprocessor level (like #define from C) so it is
 equivalent to copying and pasting. This is useful for reusing common
 patterns or just breaking up and organizing longer ones.
 
-    >>> patt = """\
-        {*switch*}
-            {*case*}{*include location*}{*endcase*}
-        {*endswitch*}
+    >>> patt = """
+        {*loop logs*}
+            {*case*}{*include iso8601*}: {{spstr error}}{*endcase*}
+            {*case*}{{spstr error}}: {*include iso8601*}{*endcase*}
+        {*endloop*}
         """
+    >>> iso8601 = """{{int year}}-{{int month}}-{{int day}}T{{int hour}}:{{int minute}}:{{float second}}"""
+    >>> logs = """
+        AssertionError: 2017-03-04T21:40:43.408923
+        ZeroDivisionError: 2017-03-04T21:49:20.932833
+        2017-03-04T21:52:03.987341: TypeError
+        """
+    >>> compiled = sp.compile(patt, includes={"iso8601": iso8601})
+    >>> print compiled.parse(logs)
+    {'logs': [
+      {'error': 'AssertionError',
+       'day': 4,
+       'hour': 21,
+       'minute': 40,
+       'month': 3,
+       'second': 43.408923,
+       'year': 2017},
+      {'error': 'ZeroDivisionError',
+       'day': 4,
+       'hour': 21,
+       'minute': 49,
+       'month': 3,
+       'second': 20.932833,
+       'year': 2017},
+      {'error': 'TypeError',
+       'day': 4,
+       'hour': 21,
+       'minute': 52,
+       'month': 3,
+       'second': 3.987341,
+       'year': 2017}
+    ]}
 
-
-    >>> location = """\
-        {{spstr address}} ({{float lat}},{{float lon}})
-
-
-TODO
 
 
 Installation
@@ -329,7 +355,7 @@ Built-in types
 | Type           | Description                                       | Pattern
 | -------------- | ------------------------------------------------- | --------
 | str            | a string with no spaces                           | "\S+"
-| spstr          | a string with spaces allowed                      | ".*"
+| spstr          | a string with spaces allowed                      | ".+"
 | int            | an integer. Won't accept decimals                 | "-? ?[0-9,]+"
 | float          | a float                                           | "-? ?[0-9,.]+"
 | alpha          | a string without digits, special chars, or spaces | "[a-zA-Z]+"
@@ -363,10 +389,9 @@ If you just want to return the un-modified string, pass in `None`
 
 TODO
 ======
-- Finish includes example
+- Checks for no nested loops or switches
 - Update docs
 - upload to pip
-- ensure no nested loops or switches
 
 After release
 - Nested loops (will need to rewrite major parts as a string gobbler)

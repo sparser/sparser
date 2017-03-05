@@ -115,15 +115,6 @@ class TestSparser(unittest.TestCase):
         ret = json.loads(string_io.getvalue())
         self.assertEqual(ret, {"what": "hello"})
 
-        # TODO fake files
-        # sp._main(['--pattern-string', '"{{str what}} world"', '--input-file', "<<<", '"hello world"'], string_io)
-        # ret = json.loads(string_io.getvalue())
-        # self.assertEqual(ret, {"what": "hello"})
-
-        # sp._main(['--input-string', '"hello world"', '--pattern-file', '<<<', '"{{str what}} world"'], string_io)
-        # ret = json.loads(string_io.getvalue())
-        # self.assertEqual(ret, {"what": "hello"})
-
     def test_includes(self):
         patt = "{{str a1}} {*include sub_patt*} {{str a2}}"
         sub_patt = "b{{'[c]{5}' cs}}b"
@@ -133,6 +124,45 @@ class TestSparser(unittest.TestCase):
             {"a1": "a", "a2": "a", "cs": "ccccc"})
         with self.assertRaises(SparserValueError):
             sp.parse(patt, string)
+
+    def test_includes_2(self):
+        # from the docs
+        patt = """
+        {*loop logs*}
+            {*case*}{*include iso8601*}: {{spstr error}}{*endcase*}
+            {*case*}{{spstr error}}: {*include iso8601*}{*endcase*}
+        {*endloop*}
+        """
+        iso8601 = """{{int year}}-{{int month}}-{{int day}}T{{int hour}}:{{int minute}}:{{float second}}"""
+        logs = "AssertionError: 2017-03-04T21:40:43.408923\n" \
+               "ZeroDivisionError: 2017-03-04T21:49:20.932833\n" \
+               "2017-03-04T21:52:03.987341: TypeError\n"
+        compiled = sp.compile(patt, includes={"iso8601": iso8601})
+        self.assertEqual(
+            compiled.parse(logs),
+            {'logs': [
+              {'error': 'AssertionError',
+               'day': 4,
+               'hour': 21,
+               'minute': 40,
+               'month': 3,
+               'second': 43.408923,
+               'year': 2017},
+              {'error': 'ZeroDivisionError',
+               'day': 4,
+               'hour': 21,
+               'minute': 49,
+               'month': 3,
+               'second': 20.932833,
+               'year': 2017},
+              {'error': 'TypeError',
+               'day': 4,
+               'hour': 21,
+               'minute': 52,
+               'month': 3,
+               'second': 3.987341,
+               'year': 2017}
+            ]})
 
     def test_match(self):
         patt = "Hello {{alpha where}}"
