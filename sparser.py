@@ -7,7 +7,7 @@ import json
 import re
 import sys
 
-from sparser_exceptions import SparserValueError, SparserSyntaxError
+from sparser_exceptions import SparserValueError, SparserSyntaxError, SparserUnexpectedError
 
 if sys.version_info[0] > 2:
     # python 3
@@ -301,7 +301,7 @@ class Dict(SIS):
             for section in self.translated.split('(?P<.*?>.*?)'):
                 if not re.search(section, string, re.DOTALL):
                     raise SparserValueError("%r is unmatched for string %r" % (section, string))
-            raise AssertionError("Unexpected error finding where the string doesn't match")
+            raise SparserUnexpectedError("Unexpected error finding where the string doesn't match")
 
         ret = {}
         for sub_match, d_entry in zip(match.groups(), self.d_entries):
@@ -481,8 +481,8 @@ class Text(SIS):
         self.patt = re.sub('^\\\\\n', '\n*', self.patt)
         self.patt = re.sub('\\\\\n$', '\n*', self.patt)
         self.patt = re.sub('(.)\\\\\n(.)', lambda x: x.group(1) + '\n+' + x.group(2), self.patt)
-
         print(self.patt)
+
 
     def translate(self):
         """
@@ -505,7 +505,7 @@ class Var(SIS):
             var_type = elements[0]
             self.var_name = None
         else:
-            raise AssertionError("A variable that wasn't one or two elements???")
+            raise SparserUnexpectedError("Unexpected error: Variables should be one or two elements.")
 
         if var_type in ctx.type_map:
             re_patt, self.cb = ctx.type_map[var_type]

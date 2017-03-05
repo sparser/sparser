@@ -8,3 +8,7 @@ class SparserSyntaxError(SparserError, SyntaxError):
 
 class SparserValueError(SparserError, ValueError):
     pass
+
+
+class SparserUnexpectedError(SparserError, AssertionError):
+    pass
