@@ -1082,6 +1082,46 @@ SparserSyntaxError
 
 
 
+- Switches in loops fail
+PATTERN
+{*loop sw*}
+  {*case ints*}
+    {*switch swi*}
+      {*case 1*}1{*endcase*}
+      {*case 2*}2{*endcase*}
+    {*endswitch*}
+  {*endcase*}
+  {*case alphas*}
+    {*switch swa*}
+      {*case a*}a{*endcase*}
+      {*case b*}b{*endcase*}
+    {*endswitch*}
+  {*endcase*}
+{*endloop*}
+STRING
+a
+RAISES
+SparserSyntaxError
 
 
 
+- Loops in switches fail
+PATTERN
+{*switch sw*}
+  {*case ints*}
+    {*loop swi*}
+      {*case 1*}1{*endcase*}
+      {*case 2*}2{*endcase*}
+    {*endloop*}
+  {*endcase*}
+  {*case alphas*}
+    {*loop swa*}
+      {*case a*}a{*endcase*}
+      {*case b*}b{*endcase*}
+    {*endloop*}
+  {*endcase*}
+{*endswitch*}
+STRING
+a
+RAISES
+SparserSyntaxError

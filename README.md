@@ -1,8 +1,10 @@
-Sparser is regex & string parsing for humans
+Sparser is a reverse-templating language for matching and parsing strings
 ====================================
-Regular expressions are powerful but difficult to use and not
-well-suited to longer, multi-line strings. Sparser was developed as
-a reverse-templating language to handle this problem.
+Extracting text from multi-line plaintext strings is a surprisingly
+difficult task. Traditionally, regular expressions were used for this.
+As anyone who has worked with regular expressions knows, however, they
+are difficult to read, full of gotchas, and don't scale well over
+multiple lines. Sparser was developed to handle this problem.
 
     >>> import sparser as sp
     >>> r = sp.match("Hello {{str}}!", "Hello World!")
@@ -17,8 +19,8 @@ a reverse-templating language to handle this problem.
     >>> print r
     {'planet': 'World'}
 
-Sparser is an improvement on [regexes](https://docs.python.org/2/library/re.html)
-using [Handlebars](https://github.com/wycats/handlebars.js/)-style templating.
+Syntax-wise, Sparser is a mashup of [regular expressions](https://docs.python.org/2/library/re.html)
+and [Handlebars](https://github.com/wycats/handlebars.js/)-style templating.
 
     >>> patt = "The {{spstr rocket}} {{str}} off at {{int hour}}:{{int minute}}" \
                "and costs {{currency price}}."
@@ -91,7 +93,6 @@ for lighly formatted tables
     ]}
 
 Loops can have multiple cases which can either be named or unnamed
-
 
     >>> patt = """\
         {*loop line_items*}
@@ -188,6 +189,8 @@ patterns or just breaking up and organizing longer ones.
        'year': 2017}
     ]}
 
+Unfortunately, Sparser does not support nesting switches and loops in v0.1. This might
+be updated in future versions
 
 
 Installation
@@ -389,11 +392,6 @@ If you just want to return the un-modified string, pass in `None`
 
 TODO
 ======
-- Checks for no nested loops or switches
-- Update docs
-- upload to pip
-
-After release
 - Nested loops (will need to rewrite major parts as a string gobbler)
 - Inline loops (If a loop is not adjacent to \n on both sides, we should not automatically newline it)
 - Cleanup the building of the AST
@@ -409,21 +407,9 @@ Similar projects
 - [pyParsing](http://pyparsing.wikispaces.com/)
 
 
-Why was this made?
-==================
-Sparser was developed in early 2017 at [UtilityAPI](https://utilityapi.com).
-We process electric usage and billing data from residential and commercial
-buildings for businesses in the green energy space. Much of this work involves
-extracting data from pdf utility bills like electic meter readings and line
-charges. There are hundreds of electric utilities in the United States, many
-with several different bill formats. Parsing these using a regular-expression
-based approach was getting burdensome so we developed Sparser as a tool to help
-us.
-
-
 Bugs
 ===========
-This is version .1 and there is liable to be a bug or two that we missed. Please
+This is version 0.1 and there is liable to be a bug or two that we missed. Please
 let us know or submit a patch.
 
 

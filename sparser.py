@@ -221,6 +221,8 @@ def _make_loop(tokens, ctx):
         loop_tokens.append(token)
         if isinstance(token, OPENLOOP):
             raise SparserSyntaxError("Nested loops are not supported in Sparser v0.1")
+        if isinstance(token, OPENSWITCH):
+            raise SparserSyntaxError("Switches in loops are not supported in Sparser v0.1")
         if isinstance(token, CLOSELOOP):
             break
         if not tokens:
@@ -235,6 +237,8 @@ def _make_switch(tokens, ctx):
         switch_tokens.append(token)
         if isinstance(token, OPENSWITCH):
             raise SparserSyntaxError("Nested switches are not supported in Sparser v0.1")
+        if isinstance(token, OPENLOOP):
+            raise SparserSyntaxError("Loops in switches are not supported in Sparser v0.1")
         if isinstance(token, CLOSESWITCH):
             break
         if not tokens:
@@ -243,17 +247,14 @@ def _make_switch(tokens, ctx):
 
 
 def _make_case(tokens, ctx):
-    nested = 1
     case_tokens = [tokens.pop(0)]
     while True:
         token = tokens.pop(0)
         case_tokens.append(token)
         if isinstance(token, OPENCASE):
-            nested += 1
+            raise SparserSyntaxError("Sparser v0.1 does not support nesting")
         if isinstance(token, CLOSECASE):
-            nested -= 1
-            if not nested:
-                break
+            break
         if not tokens:
             raise SparserSyntaxError("{*case*} not closed with a matching {*endcase*}")
     return tokens, Case(case_tokens, ctx)
@@ -393,7 +394,7 @@ class Loop(SIS):
         :param str string_input: the string captured within the loop
         :rtype: [{var_name: var_val, ...}, ...]
         """
-        string_lines = re.split("\r\n|\n|\r", string_input) # split into lines by any common newline type
+        string_lines = re.split("\r\n|\n|\r", string_input)  # split into lines by any common newline type
         if not [l for l in string_lines if l]:
             return []
 
