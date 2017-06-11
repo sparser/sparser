@@ -422,7 +422,7 @@ If you just want to return the un-modified string, pass in `None`
 
 TODO
 ======
-- Nested loops (will need to rewrite major parts as a string gobbler)
+- Nested loops (will need to rewrite major parts as a finite state machine)
 - Inline loops (If a loop is not adjacent to \n on both sides, we should not automatically newline it)
 - Cleanup the building of the AST
 - Add unicode-compatible currency (euros, yen, etc.)
