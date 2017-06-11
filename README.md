@@ -46,9 +46,9 @@ Table of Contents
 1. [Examples](#examples)
 2. [Installation](#installation)
 3. [Documentation](#documentation)
-  1. [Method reference](#method-reference)
-  2. [Pattern behaviour](#pattern-behavior)
-  3. [Tags](#tags)
+    1. [Method reference](#method-reference)
+    2. [Pattern behaviour](#pattern-behavior)
+    3. [Tags](#tags)
 4. [TODO](#todo)
 5. [Similar projects](#similar-projects)
 6. [Bugs](#bugs)
@@ -231,29 +231,37 @@ Documentation
 
 Method reference
 ----------------
-sparser.*parse*(pattern, string[, custom_types[, includes]])
+sparser.**parse**(pattern, string[, custom_types[, includes]])
+
 Given a pattern and a string, parse the string and return a dictionary.
 If the string does not match the pattern, a SparserValueError exception
 is raised. Optionally, use custom_types ({type_name: (type_pattern, callback)} format)
 and/or includes ({include_name: pattern})
 
-sparser.*match*(pattern, string[, custom_types[, includes]])
+sparser.**match**(pattern, string[, custom_types[, includes]])
+
 The same as parse except instead of returning a dictionary, return True if the
 pattern successfully matched the string. Internally, this works the same as
 sparser.parse but is useful when you just need to know whether something matched
 and don't want to deal with error handling or falsy, empty dictionaries.
 
-sparser.*compile*(pattern[, custom_types[, includes]])
+sparser.**compile**((pattern[, custom_types[, includes]])
+
 Pre-compile a pattern and return a SparserObject which you can later call parse/match
 on. This is useful if speed is essential or simply as a way to keep your code clean.
 
-SparserObject.*parse*(string[, custom_types[, includes]])
+SparserObject.**parse**(string[, custom_types[, includes]])
+
 Same as sparser.parse but pre-compiled using the sparser.compile method
+
+SparserObject.**match**(string[, custom_types[, includes]])
+
+Same as sparser.match but pre-compiled using the sparser.compile method
 
 
 Pattern behavior
 ----------------
-# Matching to the end of input
+### Matching to the end of input
 Sparser expects a perfect match and doesn't do partial matching. What this
 means is that this works
 
@@ -283,13 +291,13 @@ like this
 to the regex `.+` meaning "any character 1+ times".
 
 
-# Un-matched cases
+### Un-matched cases
 When Sparser is in a switch/loop, and there are multiple cases,
 it will return the first case to match the input. If no cases match within the
 switch/loop, it will raise a SparserValueError
 
 
-# Corraling loops and switches
+### Corraling loops and switches
 Loops and switches greedily match everything until the pattern immediately after
 the block or the end of the string. So, if you have a table like this
 
@@ -315,7 +323,7 @@ Instead, be sure to include the last line after the endloop
     {*endloop*}
     Play again?
 
-Or, of course, a `{{spstr}}` works in a pinch
+Or, a `{{spstr}}` works in a pinch
 
     Winners
     {*loop ranked_players*}
@@ -324,7 +332,7 @@ Or, of course, a `{{spstr}}` works in a pinch
     {{spstr}}
 
 
-# Loops and newlines
+### Loops and newlines
 Loops are designed to handle table-like strings so newlines are implied in
 loop-matching. Multiline-loops are supported but inline loops are not.
 Sparser should support inline loops in version 0.2. In the
@@ -332,27 +340,22 @@ meantime, you can use the regex bar (`|`) operator in custom or lambda
 types.
 
 
-# The number of spaces and newlines doesn't matter
+### The number of spaces and newlines doesn't matter
 Sparser is designed to make no distinction between single spaces and
-multiple spaces. This means a pattern like
+multiple spaces (just like HTML). This means
 
-    The moon
-
-Will match
-
-    The     moon
+    >>> sp.match("The moon", "The     moon")
+    True
 
 And
 
-    The     sun
+    >>> sp.match("The     sun", "The sun")
+    True
 
-Will match
+But
 
-    The sun
-
-But will not match
-
-    Thesun
+    >>> sp.match("The     sun", "Thesun")
+    False
 
 The same is true for `\n` newlines. This is not without precedent. HTML
 rendering works in the same way. This was done because of the unique
