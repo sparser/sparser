@@ -365,16 +365,17 @@ challenges in parsing multi-line regular expressions.
 Tags
 ----
 For the moment, there are only eight tags in Sparser
+
 | Tag                            | Notes
 | ------------------------------ | -----------------------------------------------------------------------
 | {{<var_type> <var_name>}}      | var_name is optional. If excluded, the tag will just match the string
-| { * switch <switch_name> * }   | can only contain { * case * } tags as direct decendents
-| { * endswitch * }              |
-| { * loop <loop_name> * }       | can only contain { * case * } tags as direct decendents
-| { * endloop * }                |
-| { * case <case_name> * }       | case_name is optional. If provided, it is inserted into the dictionary as `{"case": "case_name"}`
-| { * endcase * }                |
-| { * include <include_name> * } | this just inserts one pattern into another. Think of it like C's `#define` macro
+| {\*switch <switch_name>\*}     | can only contain {\*case\*} tags as direct decendents
+| {\*endswitch\*}                |
+| {\*loop <loop_name>\*}         | can only contain {\*case\*} tags as direct decendents
+| {\*endloop\*}                  |
+| {\*case <case_name>\*}         | case_name is optional. If provided, it is inserted into the dictionary as `{"case": "case_name"}`
+| {\*endcase\*}                  |
+| {\*include <include_name>\*}   | this just inserts one pattern into another. Think of it like C's `#define` macro
 
 
 Built-in types
