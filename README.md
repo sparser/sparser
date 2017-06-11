@@ -172,7 +172,7 @@ multi-option matches
     >>> print compiled.parse(string)
     {"statement": {"case": "telling_it_like_it_is"}}
 
-You can use the {*include <what>*} statement to embed patterns in patterns.
+You can use the {\*include <what>\*} statement to embed patterns in patterns.
 This works on a preprocessor level (like #define from C) so it is
 equivalent to copying and pasting. This is useful for reusing common
 patterns or just breaking up and organizing longer ones.
@@ -235,30 +235,30 @@ Method reference
 ----------------
 **sparser.parse**(pattern, string[, custom_types[, includes]])
 
-Given a pattern and a string, parse the string and return a dictionary.
+<p>Given a pattern and a string, parse the string and return a dictionary.
 If the string does not match the pattern, a SparserValueError exception
 is raised. Optionally, use custom_types ({type_name: (type_pattern, callback)} format)
-and/or includes ({include_name: pattern})
+and/or includes ({include_name: pattern})</p>
 
 **sparser.match**(pattern, string[, custom_types[, includes]])
 
-The same as parse except instead of returning a dictionary, return True if the
+<p>The same as parse except instead of returning a dictionary, return True if the
 pattern successfully matched the string. Internally, this works the same as
 sparser.parse but is useful when you just need to know whether something matched
-and don't want to deal with error handling or falsy, empty dictionaries.
+and don't want to deal with error handling or falsy, empty dictionaries.</p>
 
 **sparser.compile**((pattern[, custom_types[, includes]])
 
-Pre-compile a pattern and return a SparserObject which you can later call parse/match
-on. This is useful if speed is essential or simply as a way to keep your code clean.
+<p>Pre-compile a pattern and return a SparserObject which you can later call parse/match
+on. This is useful if speed is essential or simply as a way to keep your code clean.</p>
 
 **SparserObject.parse**(string[, custom_types[, includes]])
 
-Same as sparser.parse but pre-compiled using the sparser.compile method
+<p>Same as sparser.parse but pre-compiled using the sparser.compile method</p>
 
 **SparserObject.match**(string[, custom_types[, includes]])
 
-Same as sparser.match but pre-compiled using the sparser.compile method
+<p>Same as sparser.match but pre-compiled using the sparser.compile method</p>
 
 
 Pattern behavior
