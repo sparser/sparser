@@ -28,7 +28,7 @@ Sparser was developed to handle this problem.
 
 Syntax-wise, Sparser is a mashup of [regular expressions](https://docs.python.org/2/library/re.html)
 and [Handlebars](https://github.com/wycats/handlebars.js/)-style templating. A more precise tag-line
-might be *"Sparser is a reverse-templating language for matching and parsing strings"*
+might be, *Sparser is a reverse-templating language for matching and parsing strings*
 
     >>> pattern = "The {{spstr rocket}} {{str}} off at {{int hour}}:{{int minute}}" \
                   "and costs {{currency price}}."
@@ -49,6 +49,8 @@ Table of Contents
     1. [Method reference](#method-reference)
     2. [Pattern behaviour](#pattern-behavior)
     3. [Tags](#tags)
+    4. [Built-in types](#built-in-types)
+    5. [Custom types](#custom-types)
 4. [TODO](#todo)
 5. [Similar projects](#similar-projects)
 6. [Bugs](#bugs)
@@ -368,12 +370,12 @@ For the moment, there are only eight tags in Sparser
 
 | Tag                            | Notes
 | ------------------------------ | -----------------------------------------------------------------------
-| {{<var_type> <var_name>}}      | var_name is optional. If excluded, the tag will just match the string
+| {{<var_type> <var_name>}}      | var_name is optional
 | {\*switch <switch_name>\*}     | can only contain {\*case\*} tags as direct decendents
 | {\*endswitch\*}                |
 | {\*loop <loop_name>\*}         | can only contain {\*case\*} tags as direct decendents
 | {\*endloop\*}                  |
-| {\*case <case_name>\*}         | case_name is optional. If provided, it is inserted into the dictionary as `{"case": "case_name"}`
+| {\*case <case_name>\*}         | case_name is optional
 | {\*endcase\*}                  |
 | {\*include <include_name>\*}   | this just inserts one pattern into another. Think of it like C's `#define` macro
 
@@ -381,7 +383,9 @@ For the moment, there are only eight tags in Sparser
 Built-in types
 ---------------
 
-| Type           | Description                                       | Pattern
+These types can be used in any variable tag
+
+| Type           | Description                                       | Python Regex Pattern
 | -------------- | ------------------------------------------------- | --------
 | str            | a string with no spaces                           | "\S+"
 | spstr          | a string with spaces allowed                      | ".+"
