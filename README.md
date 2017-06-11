@@ -1,4 +1,4 @@
-Sparser is string parsing for humans
+Sparser is string parsing and regular expressions for humans
 ====================================
 Parsing strings can be a surprisingly difficult task. This difficulty
 multiplies when dealing with multiline strings. Traditionally, regular

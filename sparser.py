@@ -639,7 +639,7 @@ def match(pattern, string, custom_types=None, includes=None):
 def _main(args, out=sys.stdout):
     from argparse import ArgumentParser
 
-    arg_parser = ArgumentParser(description='Sparser is regexes and string parsing for humans')
+    arg_parser = ArgumentParser(description='Sparser is string parsing and regular expressions for humans')
 
     pattern_group = arg_parser.add_mutually_exclusive_group(required=True)
     pattern_group.add_argument(
