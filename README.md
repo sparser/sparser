@@ -1,36 +1,61 @@
-Sparser is a reverse-templating language for matching and parsing strings
+Sparser is string parsing for humans
 ====================================
-Extracting text from multi-line plaintext strings is a surprisingly
-difficult task. Traditionally, regular expressions were used for this.
-As anyone who has worked with regular expressions knows, however, they
-are difficult to read, full of gotchas, and don't scale well over
-multiple lines. Sparser was developed to handle this problem.
+Parsing strings can be a surprisingly difficult task. This difficulty
+multiplies when dealing with multiline strings. Traditionally, regular
+expressions were used for this. As anyone who has worked with regular
+expressions knows, however, they are difficult to read, difficult to
+maintain, full of gotchas, and don't scale well over multiple lines.
+Sparser was developed to handle this problem.
 
     >>> import sparser as sp
-    >>> r = sp.match("Hello {{str}}!", "Hello World!")
+    >>> pattern = "Hello {{str}}!"
+    >>> string = "Hello World!"
+    >>> r = sp.match(pattern, string)
     >>> print r
     True
 
-    >>> r = sp.match("Hello {{str planet}}!", "Hello World!")
+    >>> pattern = "Hello {{str planet}}!"
+    >>> string = "Hello World!"
+    >>> r = sp.match(pattern, string)
     >>> print r
     True
 
-    >>> r = sp.parse("Hello {{str planet}}!", "Hello World!")
+    >>> pattern = "Hello {{str planet}}!"
+    >>> string = "Hello World!"
+    >>> r = sp.parse(pattern, string)
     >>> print r
     {'planet': 'World'}
 
 Syntax-wise, Sparser is a mashup of [regular expressions](https://docs.python.org/2/library/re.html)
-and [Handlebars](https://github.com/wycats/handlebars.js/)-style templating.
+and [Handlebars](https://github.com/wycats/handlebars.js/)-style templating. A more precise tag-line
+might be *"Sparser is a reverse-templating language for matching and parsing strings"*
 
-    >>> patt = "The {{spstr rocket}} {{str}} off at {{int hour}}:{{int minute}}" \
-               "and costs {{currency price}}."
-    >>> compiled = sp.compile(patt)
+    >>> pattern = "The {{spstr rocket}} {{str}} off at {{int hour}}:{{int minute}}" \
+                  "and costs {{currency price}}."
+    >>> compiled = sp.compile(pattern)
     >>> print compiled.parse("The Falcon 9 blasts off at 5:30 and costs $62,000,000.")
     {'rocket': 'Falcon 9',
      'hour': 5,
      'minute': 30,
      'price': 62000000
     }
+
+
+Table of Contents
+=================
+1. [Examples](#examples)
+2. [Installation](#installation)
+3. [Documentation](#documentation)
+  1. [Method reference](#method-reference)
+  2. [Pattern behaviour](#pattern-behavior)
+  3. [Tags](#tags)
+4. [TODO](#todo)
+5. [Similar projects](#similar-projects)
+6. [Bugs](#bugs)
+
+
+Examples
+========
 
 Sparser has a basic set of built-in types like `str`, `float`, and `currency`.
 If this isn't enough, you can also pass `custom types` into the compile method
@@ -70,8 +95,7 @@ For simple one-offs, use inline `lambda types`
      'date': 23,
      'month': 'July'}
 
-Loops are one of the most power features of Sparser and are a
-feature that does not exist in regular expressions. Loops are great
+Loops are one of the most power features of Sparser. They are great
 for lighly formatted tables
 
     >>> patt = """\
@@ -347,7 +371,7 @@ For the moment, there are only eight tags in Sparser
 - {*endcase*}
 - {*include <include_name>*}
 
-To note
+Note
 - {*loop*}s and {%switch%}s can only contain {*case*}s as direct children
 - {*case*}s can only be within {*loop*}s and {%switch%}s
 
