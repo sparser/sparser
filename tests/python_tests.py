@@ -17,8 +17,8 @@ else:
 
 if __name__ == "__main__":
     sys.path.append('..')
-    import sparser as sp
-    from sparser_exceptions import SparserValueError, SparserSyntaxError, SparserError
+    import sparser.sparser as sp
+    from sparser.sparser_exceptions import SparserValueError, SparserSyntaxError, SparserError
 
 
 exception_map = {

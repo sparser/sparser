@@ -7,7 +7,7 @@ import json
 import re
 import sys
 
-from sparser_exceptions import SparserValueError, SparserSyntaxError, SparserUnexpectedError
+from .sparser_exceptions import SparserValueError, SparserSyntaxError, SparserUnexpectedError
 
 if sys.version_info[0] > 2:
     # python 3

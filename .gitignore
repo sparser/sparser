@@ -1,3 +1,9 @@
 .DS_Store
 *.pyc
 .coverage
+dist/*
+build/*
+MANIFEST
+NOTE_FOR_SCOTT
+upload_to_test.sh
+upload_to_prod.sh
