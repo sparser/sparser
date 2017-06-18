@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name='sparser',
     packages=['sparser'],
-    version='0.0.1',
+    version='0.2',
     description='String parsing and regular expressions for humans',
     long_description=open('README.md').read(),
     author='Scott Rogowski',
