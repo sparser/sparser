@@ -53,7 +53,8 @@ Table of Contents
     5. [Custom types](#custom-types)
 4. [TODO](#todo)
 5. [Similar projects](#similar-projects)
-6. [Bugs](#bugs)
+6. [Acknowledgements](#acknowledgements)
+7. [Bugs](#bugs)
 
 
 Examples
@@ -436,6 +437,18 @@ Similar projects
 - [parse](https://pypi.python.org/pypi/parse)
 - [pyParsing](http://pyparsing.wikispaces.com/)
 
+
+Acknowledgements
+================
+This project was born at [UtilityAPI](https://www.utilityapi.com). We automate
+the collection of utility data for clean energy projects. A large part of our
+work involves the extraction of text from pdf bills. The difficulties inherent
+in that task served as the inspiration for this project and they have been
+very supportive with giving me time and encouragment.
+
+Also at UtilityAPI, [Akshay Doangkar](https://github.com/akshaydongaonkar) was
+the other half of this project. Together, we collaboratively designed the
+specification and he ended up writing the first test implementation.
 
 Bugs
 ===========
